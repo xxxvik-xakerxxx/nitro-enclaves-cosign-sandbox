@@ -11,19 +11,19 @@ permissions:
   id-token: write
 
 jobs:
-  build_eif_file:
-    name: Build EIF file
+  build_and_sign_image:
+    name: Build and sign image
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      - name: Build image
-        shell: bash
-        run: |
-          cd ${{ github.workspace }}/enclave
-          docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }}
+      # - name: Build image
+      #   shell: bash
+      #   run: |
+      #     cd ${{ github.workspace }}/enclave
+      #     docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.4.0
@@ -39,7 +39,44 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push image
+      # - name: Push image
+      #   id: push-image
+      #   shell: bash
+      #   run: |
+      #     docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+      #     DIGEST=$(docker inspect ghcr.io/${{ github.repository }}:${{ github.sha }} | jq -r '.[0].RepoDigests | .[0]' | cut -d "@" -f 2)
+      #     echo "digest=${DIGEST}" >> "${GITHUB_OUTPUT}"
+
+      # - name: Sign image
+      #   env:
+      #     DIGEST: ${{ steps.push-image.outputs.digest }}
+      #     TAGS: ghcr.io/${{ github.repository }}:${{ github.sha }}
+      #   run: |
+      #     images=""
+      #     for tag in ${TAGS}; do
+      #       images+="${tag}@${DIGEST} "
+      #     done
+      #     cosign sign --yes ${images}
+
+                    
+      - name: setup-oras
+        uses: oras-project/setup-oras@v1.1.0
+        with:
+          version: 1.1.0
+
+      - name: Sign and upload file
         shell: bash
         run: |
-          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+          echo "Hello World" > test
+          RESPONSE=$(oras push ghcr.io/${{ github.repository }}:${{ github.sha }} test)
+          DIGEST_LINE=$(echo "${RESPONSE}" | grep "Digest: sha256:")
+          PREFIX="Digest: "
+          DIGEST=${DIGEST_LINE#"$PREFIX"}
+
+          echo ${RESPONSE}
+          echo ${DIGEST_LINE}
+          echo ${PREFIX}
+          echo ${DIGEST}
+
+          cosign sign --yes ghcr.io/${{ github.repository }}:${{ github.sha }}@${DIGEST}
