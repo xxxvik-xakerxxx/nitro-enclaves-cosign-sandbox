@@ -49,12 +49,17 @@ jobs:
         env:
           EIF_FILE_PATH: ${{ steps.build-eif.outputs.eif-file-path }}
           EIF_INFO_PATH: ${{ steps.build-eif.outputs.eif-info-path }}
+          EIF_FILE_NAME: enclave.eif
+          EIF_INFO_FILE_NAME: info.txt
         run: |
+          mv "${EIF_FILE_PATH}" "${EIF_FILE_NAME}"
+          mv "${EIF_INFO_PATH}" "${EIF_INFO_FILE_NAME}"
+
           oras push \
             --export-manifest manifest.json \
             ghcr.io/${{ github.repository }}:${{ github.sha }} \
-            ${{ steps.build-eif.outputs.eif-file-path }} \
-            ${{ steps.build-eif.outputs.eif-info-path }}
+            "${EIF_FILE_NAME}" \
+            "${EIF_INFO_FILE_NAME}"
           
           DIGEST=$(sha256sum manifest.json | cut -d " " -f 1)
 
