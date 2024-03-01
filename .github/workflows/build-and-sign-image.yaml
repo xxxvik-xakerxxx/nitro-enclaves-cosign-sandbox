@@ -30,3 +30,17 @@ jobs:
           eif-info-file-name: enclave-info.json
           artifact-tag: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print outputs
+        env:
+          EIF_FILE_PATH: ${{ steps.build-eif.outputs.eif-file-path }}
+          EIF_INFO_PATH: ${{ steps.build-eif.outputs.eif-info-path }}
+          GHCR_ARTIFACT_DIGEST: ${{ steps.build-eif.outputs.ghcr-artifact-digest }}
+          GHCR_ARTIFACT_PATH: ${{ steps.build-eif.outputs.ghcr-artifact-path }}
+          REKOR_LOG_INDEX: ${{ steps.build-eif.outputs.rekor-log-index }}
+        run: |
+          echo "${EIF_FILE_PATH}"
+          echo "${EIF_INFO_PATH}"
+          echo "${GHCR_ARTIFACT_DIGEST}"
+          echo "${GHCR_ARTIFACT_PATH}"
+          echo "${REKOR_LOG_INDEX}"
