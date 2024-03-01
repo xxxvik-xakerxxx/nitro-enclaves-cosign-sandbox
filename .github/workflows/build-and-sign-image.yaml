@@ -19,16 +19,16 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      # - name: Build image
-      #   shell: bash
-      #   run: |
-      #     cd ${{ github.workspace }}/enclave
-      #     docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+      - name: Build EIF
+        id: build-eif
+        uses: richardfan1126/nitro-enclaves-eif-build-action@v1
+        with:
+          docker-build-context-path: enclave
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.4.0
 
-      - name: Check install!
+      - name: Check Cosign install!
         shell: bash
         run: cosign version
       
@@ -39,27 +39,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Push image
-      #   id: push-image
-      #   shell: bash
-      #   run: |
-      #     docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
-
-      #     DIGEST=$(docker inspect ghcr.io/${{ github.repository }}:${{ github.sha }} | jq -r '.[0].RepoDigests | .[0]' | cut -d "@" -f 2)
-      #     echo "digest=${DIGEST}" >> "${GITHUB_OUTPUT}"
-
-      # - name: Sign image
-      #   env:
-      #     DIGEST: ${{ steps.push-image.outputs.digest }}
-      #     TAGS: ghcr.io/${{ github.repository }}:${{ github.sha }}
-      #   run: |
-      #     images=""
-      #     for tag in ${TAGS}; do
-      #       images+="${tag}@${DIGEST} "
-      #     done
-      #     cosign sign --yes ${images}
-
-                    
       - name: setup-oras
         uses: oras-project/setup-oras@v1.1.0
         with:
@@ -67,9 +46,15 @@ jobs:
 
       - name: Sign and upload file
         shell: bash
+        env:
+          EIF_FILE_PATH: ${{ steps.build-eif.outputs.eif-file-path }}
+          EIF_INFO_PATH: ${{ steps.build-eif.outputs.eif-info-path }}
         run: |
-          echo "Hello World" > test
-          oras push --export-manifest manifest.json ghcr.io/${{ github.repository }}:${{ github.sha }} test
+          oras push \
+            --export-manifest manifest.json \
+            ghcr.io/${{ github.repository }}:${{ github.sha }} \
+            ${{ steps.build-eif.outputs.eif-file-path }} \
+            ${{ steps.build-eif.outputs.eif-info-path }}
           
           DIGEST=$(sha256sum manifest.json | cut -d " " -f 1)
 
