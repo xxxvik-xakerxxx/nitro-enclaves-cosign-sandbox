@@ -73,4 +73,4 @@ jobs:
           
           DIGEST=$(sha256sum manifest.json | cut -d " " -f 1)
 
-          cosign sign --yes ghcr.io/${{ github.repository }}:${{ github.sha }}@${DIGEST}
+          cosign sign --yes ghcr.io/${{ github.repository }}:${{ github.sha }}@sha256:${DIGEST}
