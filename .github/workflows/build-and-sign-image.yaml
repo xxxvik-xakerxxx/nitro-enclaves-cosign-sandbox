@@ -21,46 +21,11 @@ jobs:
 
       - name: Build EIF
         id: build-eif
-        uses: richardfan1126/nitro-enclaves-eif-build-action@v1
+        uses: richardfan1126/nitro-enclaves-eif-build-action@dev
         with:
           docker-build-context-path: enclave
-
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.4.0
-
-      - name: Check Cosign install!
-        shell: bash
-        run: cosign version
-      
-      - name: Log into ghcr.io
-        uses: docker/login-action@v3.0.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: setup-oras
-        uses: oras-project/setup-oras@v1.1.0
-        with:
-          version: 1.1.0
-
-      - name: Sign and upload file
-        shell: bash
-        env:
-          EIF_FILE_PATH: ${{ steps.build-eif.outputs.eif-file-path }}
-          EIF_INFO_PATH: ${{ steps.build-eif.outputs.eif-info-path }}
-          EIF_FILE_NAME: enclave.eif
-          EIF_INFO_FILE_NAME: info.txt
-        run: |
-          mv "${EIF_FILE_PATH}" "${EIF_FILE_NAME}"
-          mv "${EIF_INFO_PATH}" "${EIF_INFO_FILE_NAME}"
-
-          oras push \
-            --export-manifest manifest.json \
-            ghcr.io/${{ github.repository }}:${{ github.sha }} \
-            "${EIF_FILE_NAME}" \
-            "${EIF_INFO_FILE_NAME}"
-          
-          DIGEST=$(sha256sum manifest.json | cut -d " " -f 1)
-
-          cosign sign --yes ghcr.io/${{ github.repository }}:${{ github.sha }}@sha256:${DIGEST}
+          enable-ghcr-push: true
+          enable-artifact-sign: true
+          eif-file-name: enclave.eif
+          eif-info-file-name: enclave-info.json
+          artifact-tag: ${{ github.sha }}
