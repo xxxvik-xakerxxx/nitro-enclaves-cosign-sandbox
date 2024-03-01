@@ -69,14 +69,8 @@ jobs:
         shell: bash
         run: |
           echo "Hello World" > test
-          RESPONSE=$(oras push ghcr.io/${{ github.repository }}:${{ github.sha }} test)
-          DIGEST_LINE=$(echo "${RESPONSE}" | grep "Digest: sha256:")
-          PREFIX="Digest: "
-          DIGEST=${DIGEST_LINE#"$PREFIX"}
-
-          echo ${RESPONSE}
-          echo ${DIGEST_LINE}
-          echo ${PREFIX}
-          echo ${DIGEST}
+          oras push --export-manifest manifest.json ghcr.io/${{ github.repository }}:${{ github.sha }} test
+          
+          DIGEST=$(sha256sum manifest.json | cut -d " " -f 1)
 
           cosign sign --yes ghcr.io/${{ github.repository }}:${{ github.sha }}@${DIGEST}
