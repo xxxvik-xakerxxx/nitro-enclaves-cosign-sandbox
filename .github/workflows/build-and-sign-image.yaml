@@ -44,3 +44,37 @@ jobs:
           echo "${GHCR_ARTIFACT_DIGEST}"
           echo "${GHCR_ARTIFACT_PATH}"
           echo "${REKOR_LOG_INDEX}"
+
+      - name: Generate release note
+        id: generate-release-note
+        env:
+          EIF_INFO_PATH: ${{ steps.build-eif.outputs.eif-info-path }}
+          REKOR_LOG_INDEX: ${{ steps.build-eif.outputs.rekor-log-index }}
+        run: |
+          # Get EIF measurement
+          EIF_MEASUREMENT=$(cat ${EIF_INFO_PATH} | jq '.Measurements')
+          REKOR_SEARCH_LINK="https://search.sigstore.dev/?logIndex=${REKOR_LOG_INDEX}"
+
+          RELEASE_NOTE=$(cat << EOF
+          EIF measurements:
+          \`\`\`
+          ${EIF_MEASUREMENT}
+          \`\`\`
+
+          Signing entry: [${REKOR_SEARCH_LINK}](${REKOR_SEARCH_LINK})
+          EOF
+          )
+
+          echo "RELEASE_NOTE<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${RELEASE_NOTE}" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{ steps.build-eif.outputs.eif-file-path }}
+          body: |
+            ```
+            ${{ steps.generate-release-note.outputs.RELEASE_NOTE }}
+            ```
