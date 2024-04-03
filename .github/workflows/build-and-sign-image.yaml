@@ -29,7 +29,6 @@ jobs:
           eif-file-name: enclave.eif
           eif-info-file-name: enclave-info.json
           artifact-tag: ${{ github.sha }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Print outputs
         env:
