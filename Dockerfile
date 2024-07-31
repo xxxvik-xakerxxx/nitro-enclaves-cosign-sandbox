@@ -6,5 +6,7 @@ RUN dnf install aws-nitro-enclaves-cli aws-nitro-enclaves-cli-devel -y
 
 RUN mkdir /output
 
+RUN docker images
+
 # Command to build EIF
 ENTRYPOINT ["/bin/bash", "-c", "nitro-cli build-enclave --docker-uri ${DOCKER_IMAGE_TAG}:latest --output-file /output/enclave.eif && nitro-cli describe-eif --eif-path /output/enclave.eif > /output/eif-info.txt"]
