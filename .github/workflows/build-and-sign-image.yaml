@@ -21,6 +21,9 @@ jobs:
         options: --privileged
 
     steps:
+    - name: install nitro cli
+      run: dnf install aws-nitro-enclaves-cli aws-nitro-enclaves-cli-devel tar  -y
+
     - name: Checkout code
       uses: actions/checkout@v2
 
@@ -31,9 +34,6 @@ jobs:
 
     - name: Build Docker image
       run: docker build -f enclave/Dockerfile -t elf:latest enclave
-
-    - name: install nitro cli
-      run: dnf install aws-nitro-enclaves-cli aws-nitro-enclaves-cli-devel -y
 
     - name: mkdir
       run: mkdir /output
