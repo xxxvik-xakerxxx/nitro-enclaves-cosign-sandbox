@@ -24,8 +24,6 @@ jobs:
         uses: richardfan1126/nitro-enclaves-eif-build-action@dev
         with:
           docker-build-context-path: enclave
-          enable-ghcr-push: true
-          enable-artifact-sign: true
           eif-file-name: enclave.eif
           eif-info-file-name: enclave-info.json
           artifact-tag: ${{ github.sha }}
