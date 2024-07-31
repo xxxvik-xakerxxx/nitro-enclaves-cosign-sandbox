@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build Docker image
-      run: docker build -f enclave/Dockerfile -t elf:latest .
+      run: docker build -f enclave/Dockerfile -t elf:latest enclave
 
     - name: Install Nitro CLI
       run: |
