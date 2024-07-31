@@ -14,6 +14,7 @@ permissions:
 jobs:
    build:
     runs-on: ubuntu-latest
+    container: amazonlinux@sha256:5bf791027b4659e73c33a88a3fa2b314b8e2c0ee60cb1088a097171ee7f180db
     services:
       docker:
         image: docker:20.10-dind
@@ -31,19 +32,11 @@ jobs:
     - name: Build Docker image
       run: docker build -f enclave/Dockerfile -t elf:latest enclave
 
-    - name: Build Nitro CLI Docker image
-      run: docker build -f Dockerfile -t nitro-cli-image:latest .
+    - name: install nitro cli
+      run: dnf install aws-nitro-enclaves-cli aws-nitro-enclaves-cli-devel -y
 
-    - name: List Docker images
-      run: docker images
+    - name: mkdir
+      run: mkdir /output
 
-    - name: Verify Docker daemon access in Nitro CLI
-      run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock busybox sh -c "docker version"
-
-    - name: Create EIF file using Nitro CLI container
-      run: |
-        docker run --rm --privileged \
-          -v $(pwd)/output:/output \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -e DOCKER_IMAGE_TAG=elf:latest \
-          nitro-cli-image:latest
+    - name: Create EIF
+      run: nitro-cli build-enclave --docker-uri elf:latest --output-file /output/enclave.eif && nitro-cli describe-eif --eif-path /output/enclave.eif > /output/eif-info.txt
