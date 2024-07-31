@@ -2,7 +2,7 @@
 FROM amazonlinux@sha256:5bf791027b4659e73c33a88a3fa2b314b8e2c0ee60cb1088a097171ee7f180db
 
 # Install nitro-cli
-RUN dnf install aws-nitro-enclaves-cli aws-nitro-enclaves-cli-devel -y
+RUN dnf install aws-nitro-enclaves-cli aws-nitro-enclaves-cli-devel docker -y
 
 RUN mkdir /output
 

@@ -37,9 +37,12 @@ jobs:
     - name: List Docker images
       run: docker images
 
+    - name: Verify Docker daemon access in Nitro CLI
+      run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock busybox sh -c "docker version"
+
     - name: Create EIF file using Nitro CLI container
       run: |
-        docker run --rm \
+        docker run --rm --privileged \
           -v $(pwd)/output:/output \
           -v /var/run/docker.sock:/var/run/docker.sock \
           -e DOCKER_IMAGE_TAG=elf:latest \
