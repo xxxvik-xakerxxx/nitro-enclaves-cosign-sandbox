@@ -12,12 +12,23 @@ permissions:
 
 
 jobs:
-  build:
+   build:
     runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:19.03.12
+        options: --privileged
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Set up Docker in Docker
+      run: |
+        apt-get update
+        apt-get install -y docker.io
+        service docker start
+        docker --version
 
     - name: Build Docker image
       run: docker build -f enclave/Dockerfile -t elf:latest enclave
@@ -29,5 +40,6 @@ jobs:
       run: |
         docker run --rm \
           -v $(pwd)/output:/output \
+          -v /var/run/docker.sock:/var/run/docker.sock \
           -e DOCKER_IMAGE_TAG=elf:latest \
           nitro-cli-image:latest
