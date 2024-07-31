@@ -23,11 +23,11 @@ jobs:
       run: docker build -f enclave/Dockerfile -t elf:latest enclave
 
     - name: Build Nitro CLI Docker image
-      run: docker build -t nitro-cli-image -f Dockerfile
+      run: docker build -f Dockerfile -t nitro-cli-image:latest .
 
     - name: Create EIF file using Nitro CLI container
       run: |
         docker run --rm \
           -v $(pwd)/output:/output \
           -e DOCKER_IMAGE_TAG=elf:latest \
-          nitro-cli-image
+          nitro-cli-image:latest
